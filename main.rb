@@ -309,7 +309,8 @@ class Notion
           curr_date = pixel["date"]
           for entry in pixel["entries"] do 
             notion_page = build_page(database_id, curr_date, entry)
-            #post_page(headers, notion_page)
+
+            post_page(headers, notion_page)
           end 
         end
 
