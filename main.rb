@@ -31,7 +31,6 @@ MOOD_MAPPINGS = {
   },
 }
 
-#TODO: ADD EMOTIONS: find multi-select example >> approximation added
 # a mapping for emotions to Notion IDs and names
 EMOTION_MAPPINGS = {
     "anger": {
@@ -114,6 +113,25 @@ EMOTION_MAPPINGS = {
 class Notion
     @@emotions = [];
     @@test_page = {};
+    
+    def load_json(file_path)
+        if !file_path 
+          puts "no file path given"
+          return nil
+        end
+
+        puts "We can find the file here: ", file_path
+        file = File.open(file_path)
+
+        if !file
+          puts "Not able to access file"
+          return nil
+        end
+
+        raw_data = file.read()
+
+        return my_json = JSON.parse(raw_data)
+    end
 
     def get_emotions(tags)
         emotions = []
@@ -213,11 +231,11 @@ class Notion
         #@@test_page = notion_page
         #puts "notion page: ", notion_page
         #puts "notion page: ", notion_page.to_json
-        if emotions.count > 4
-            puts "found a page with emotions to test: ", new_notion_page
-            @@test_page = new_notion_page
+        #if emotions.count > 4
+            #puts "found a page with emotions to test: ", new_notion_page
+            #@@test_page = new_notion_page
             # EXCELLENT the emotions multi-select works
-        end
+        #end
     end
 
     def get_database(headers, database_id, verbose = false)
@@ -272,22 +290,10 @@ class Notion
         
         # get user provided file path for json
         file_path = ARGV[0]
-
-        if !file_path 
-          puts "no file path given"
-          return
+        my_json = load_json(file_path)
+        if !my_json
+            return
         end
-
-        puts "We can find the file here: ", file_path
-        file = File.open(file_path)
-
-        if !file
-          puts "Not able to access file"
-          return
-        end
-
-        raw_data = file.read()
-        my_json = JSON.parse(raw_data)
 
         # API SETUP
         notion_version = ENV["NOTION_VERSION"]
@@ -306,10 +312,10 @@ class Notion
             #post_page(headers, notion_page)
           end 
         end
+
+        # TESTING
         #puts "unique emotions: ", @@emotions.sort
-
         #get_database(headers, database_id, true)
-
         #filter = {
             #"property": "Name",
             #"select": {
@@ -317,8 +323,7 @@ class Notion
             #}
         #}
         #query_database(headers, database_id, filter, true)
-
-        post_page(headers, @@test_page, true)
+        #post_page(headers, @@test_page, true)
     end
 end
 
