@@ -151,6 +151,7 @@ class Notion
         #puts "MOOD force:", curr_mood[:name].force_encoding('iso-8859-1') 
         #page_name = "#{curr_mood[:name]} #{curr_date}";
         page_name = curr_date;
+        emotions = get_emotions(entry["tags"])
         page_properties = {
             "Date": {
                 "date": {
@@ -190,7 +191,7 @@ class Notion
                 ]
             },
             "Emotions": {
-                "multi_select": get_emotions(entry["tags"])
+                "multi_select": emotions 
             },
             "Mood": {
                 "select": curr_mood        
@@ -208,6 +209,15 @@ class Notion
             #},
             "properties": page_properties
         }
+        # TESTING 
+        #@@test_page = notion_page
+        #puts "notion page: ", notion_page
+        #puts "notion page: ", notion_page.to_json
+        if emotions.count > 4
+            puts "found a page with emotions to test: ", new_notion_page
+            @@test_page = new_notion_page
+            # EXCELLENT the emotions multi-select works
+        end
     end
 
     def get_database(headers, database_id, verbose = false)
@@ -294,10 +304,6 @@ class Notion
           for entry in pixel["entries"] do 
             notion_page = build_page(database_id, curr_date, entry)
             #post_page(headers, notion_page)
-            # TESTING 
-            @@test_page = notion_page
-            #puts "notion page: ", notion_page
-            #puts "notion page: ", notion_page.to_json
           end 
         end
         #puts "unique emotions: ", @@emotions.sort
