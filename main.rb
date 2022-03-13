@@ -113,6 +113,7 @@ EMOTION_MAPPINGS = {
 
 class Notion
     @@emotions = [];
+    @@test_page = {};
 
     def get_emotions(tags)
         emotions = []
@@ -137,9 +138,12 @@ class Notion
         return emotions
     end
 
-    def build_page(curr_date, entry)
+    def build_page(database_id, curr_date, entry)
+        #puts "entry:", entry
         entry_date = DateTime.iso8601(curr_date)
-        new_notion_page = {
+        curr_mood = MOOD_MAPPINGS[entry["value"].to_s.to_sym]
+        puts "curr_mood", curr_mood[:name].encode('utf-8') #tried encode('utf-8') tried to_s, to_json
+        page_properties = {
             "Date": {
                 "date": {
                     "start": entry_date.strftime("%FT%T.%LZ"),
@@ -149,7 +153,7 @@ class Notion
             "Name": {
                 "title": [
                     "text": {
-                        "content": curr_date,
+                        "content": curr_date
                     }
                 ]
             },
@@ -181,9 +185,60 @@ class Notion
                 "multi_select": get_emotions(entry["tags"])
             },
             "Mood": {
-                "select": MOOD_MAPPINGS[entry["value"].to_s.to_sym]        
+                "select": curr_mood        
             }
         };
+        new_notion_page = {
+            "parent": {
+                "database_id": database_id,
+                #"page_id": nil
+            },
+            #"icon": {
+                #"type": "emoji",
+                #"emoji": curr_mood[:name].encode('utf-8'),
+                #"external": nil
+            #},
+            "properties": page_properties
+        }
+    end
+
+    def get_database(headers, database_id)
+        url_get_database = "https://api.notion.com/v1/databases/#{database_id}"
+        get_database_response = RestClient.get(url_get_database, headers)
+        puts "GET DATABASE"
+        puts "----"
+        puts get_database_response.body
+    end
+
+    def query_database(headers, database_id, filter)
+        url_query_database = "https://api.notion.com/v1/databases/#{database_id}/query"
+        query_database_payload = { "filter": filter }
+        query_response = RestClient.post(
+            url_query_database, 
+            query_database_payload, 
+            headers
+        )
+        puts "QUERY DATABASE"
+        puts "----"
+        puts query_response.body
+    end
+
+    def post_page(headers, new_page)
+        url_create_page = "https://api.notion.com/v1/pages/"
+        create_page_payload = new_page;
+        puts "CREATE PAGE"
+        puts "----"
+        begin
+            create_response = RestClient.post(
+                url_create_page, 
+                create_page_payload.to_json, 
+                headers
+            )
+            puts create_response.code
+            puts create_response.body
+        rescue RestClient::ExceptionWithResponse => e
+            puts "BAD REQUEST: ", e.response
+        end
     end
 
     def main
@@ -208,67 +263,38 @@ class Notion
         raw_data = file.read()
         my_json = JSON.parse(raw_data)
 
-        for pixel in my_json do
-          curr_date = pixel["date"]
-          for entry in pixel["entries"] do 
-            notion_page = build_page(curr_date, entry)
-            puts "notion page: ", notion_page.to_json
-            # TODO: do API call to POST new page to NOTION
-          end 
-        end
-
-        puts "unique emotions: ", @@emotions.sort
-
+        # API SETUP
         notion_version = ENV["NOTION_VERSION"]
         secret = ENV["BEARER_TOKEN"]
         database_id = ENV["DATABASE_ID"]
-
-        # API TESTS
-        url_get_database = "https://api.notion.com/v1/databases/#{database_id}"
         headers = {
           "Authorization": "Bearer #{secret}",
           "Content-Type": "application/json",
           "Notion-Version": notion_version
         }
-        #get_database_response = RestClient.get(url_get_database, headers)
-        #puts get_database_response.body
 
-        url_query_database = "https://api.notion.com/v1/databases/#{database_id}/query"
-        query_database_payload = {
-            "filter": {
-                "property": "Name",
-                "select": {
-                    "equals": "TEST 0"
-                }
-            }
-        }
-        #query_response = RestClient.post(url_query_database, query_database_payload, headers)
-        #puts "----"
-        #puts query_response.body
+        for pixel in my_json do
+          curr_date = pixel["date"]
+          for entry in pixel["entries"] do 
+            notion_page = build_page(database_id, curr_date, entry)
+            @@test_page = notion_page
+            puts "notion page: ", notion_page.to_json
+            # TODO: do API call to POST new page to NOTION
+          end 
+        end
+        #puts "unique emotions: ", @@emotions.sort
 
-        url_create_page = "https://api.notion.com/v1/pages/"
-        #create_page_payload = {
-            #"parent": {
-        #TODO:
-                #"database_id": "{{DATABASE_ID}}"
-            #},
-            #"properties": {
-                #"Date": {
-                #},
-                #"Name": {
-                #},
-                #"isHighlighted": {
-                #},
-                #"notes": {
-                #},
-                #"Emotions": {
-                #}
-                #"Mood": {
-                #}
+        #get_database(headers, database_id)
+
+        #filter = {
+            #"property": "Name",
+            #"select": {
+                #"equals": "TEST 0"
             #}
         #}
-        #response = RestClient.post(url_create_page, create_page_payload, headers)
+        #query_database(headers, database_id, filter)
 
+        #create_page(headers, @@test_page)
     end
 end
 
