@@ -34,10 +34,80 @@ MOOD_MAPPINGS = {
 #TODO: ADD EMOTIONS: find multi-select example >> approximation added
 # a mapping for emotions to Notion IDs and names
 EMOTION_MAPPINGS = {
+    "anger": {
+        "color": "default",
+        "id": "34599b68-278f-4469-818a-fe3ea15ac628",
+        "name": "anger"
+    },
+    "anxiety": {
+        "color": "default",
+        "id": "a624b198-87e1-4245-8914-62ec271969a2",
+        "name": "anxiety"
+    },
     "chill": {
+        "color": "default",
         "id": "dd43926e-6df4-4322-b15d-85ca1dd2f99f",
-        "name": 'chill',
-        "color": "default"
+        "name": "chill"
+    },
+    "emptiness": {
+        "color": "default",
+        "id": "0148a002-b106-49fd-aa47-73658c1abeb5",
+        "name": "emptiness"
+    },
+    "excitement": {
+        "color": "default",
+        "id": "f27870f2-dcfe-4304-8cce-72ed4be9aef9",
+        "name": "excitement"
+    },
+    "fear": {
+        "color": "default",
+        "id": "4a98b2a0-bc12-4cc6-99cb-62ceb87b94d1",
+        "name": "fear"
+    },
+    "happiness": {
+        "color": "default",
+        "id": "2f62b684-ac7c-4c47-9784-c45f838a851a",
+        "name": "happiness"
+    },
+    "joy": {
+        "color": "default",
+        "id": "740541ce-826d-4b4d-aba0-7c2883ba4937",
+        "name": "joy"
+    },
+    "love": {
+        "color": "default",
+        "id": "c7a739a3-6516-4bd9-968d-9c1b623ded60",
+        "name": "love"
+    },
+    "nerves": {
+        "color": "default",
+        "id": "1b9bdfb8-15bf-469f-a07f-cc0ef7ac12fd",
+        "name": "nerves"
+    },
+    "optimism": {
+        "color": "default",
+        "id": "0b0cd695-d6e6-43f4-807c-2bdeaa1fe36d",
+        "name": "optimism"
+    },
+    "remorse": {
+        "color": "default",
+        "id": "324b6109-785c-480c-bd6a-c708f75b39b4",
+        "name": "remorse"
+    },
+    "sadness": {
+        "color": "default",
+        "id": "b8fe7131-07f9-475c-bcbe-d08ccd579a26",
+        "name": "sadness"
+    },
+    "stress": {
+        "color": "default",
+        "id": "3dade857-11cd-4c08-a490-4d5924084b9f",
+        "name": "stress"
+    },
+    "tiredness": {
+        "color": "default",
+        "id": "5bde5007-e2ea-40e0-879f-7eddfdaddad3",
+        "name": "tiredness"
     }
 }
 
@@ -69,7 +139,6 @@ class Notion
 
     def build_page(curr_date, entry)
         entry_date = DateTime.iso8601(curr_date)
-        #puts entry_date.strftime("%FT%T.%LZ")
         new_notion_page = {
             "Date": {
                 "date": {
@@ -119,12 +188,6 @@ class Notion
 
     def main
         Dotenv.load
-        notion_version = ENV["NOTION_VERSION"]
-        secret = ENV["BEARER_TOKEN"]
-        database_id = ENV["DATABASE_ID"]
-        #puts notion_version
-        #puts secret
-        #puts database_id
         
         # get user provided file path for json
         file_path = ARGV[0]
@@ -134,7 +197,7 @@ class Notion
           return
         end
 
-        puts "we can find the file here: ", file_path
+        puts "We can find the file here: ", file_path
         file = File.open(file_path)
 
         if !file
@@ -143,24 +206,22 @@ class Notion
         end
 
         raw_data = file.read()
-        #puts raw_data
-        #puts raw_data.class
-
         my_json = JSON.parse(raw_data)
-        #puts my_json
 
         for pixel in my_json do
           curr_date = pixel["date"]
-          #puts curr_date
           for entry in pixel["entries"] do 
-            #puts "entry: ", entry
             notion_page = build_page(curr_date, entry)
-            #puts "notion page: ", notion_page
+            puts "notion page: ", notion_page.to_json
             # TODO: do API call to POST new page to NOTION
           end 
         end
 
         puts "unique emotions: ", @@emotions.sort
+
+        notion_version = ENV["NOTION_VERSION"]
+        secret = ENV["BEARER_TOKEN"]
+        database_id = ENV["DATABASE_ID"]
 
         # API TESTS
         url_get_database = "https://api.notion.com/v1/databases/#{database_id}"
@@ -177,7 +238,7 @@ class Notion
             "filter": {
                 "property": "Name",
                 "select": {
-                    "equals": "TEST"
+                    "equals": "TEST 0"
                 }
             }
         }
