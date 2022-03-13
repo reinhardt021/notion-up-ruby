@@ -142,11 +142,15 @@ class Notion
         #puts "entry:", entry
         entry_date = DateTime.iso8601(curr_date)
         curr_mood = MOOD_MAPPINGS[entry["value"].to_s.to_sym]
-        puts "MOOD:", curr_mood[:name].to_s #tried encode('utf-8') tried to_s, to_json
-        puts "MOOD:", curr_mood[:name].to_json #tried encode('utf-8') tried to_s, to_json
-        puts "MOOD:", curr_mood[:name].encode('utf-8') #tried encode('utf-8') tried to_s, to_json
-        puts "MOOD:", curr_mood[:name].force_encoding('utf-8') #tried encode('utf-8') tried to_s, to_json
-        page_name = "#{curr_mood[:name]} #{curr_date}";
+        #puts "MOOD basic:", curr_mood[:name]
+        #puts "MOOD string:", curr_mood[:name].to_s 
+        #puts "MOOD json:", curr_mood[:name].to_json 
+        #puts "MOOD utf 8:", curr_mood[:name].encode('utf-8') 
+        #puts "MOOD utf 8:", curr_mood[:name].encode('UTF-8') 
+        #puts "MOOD force:", curr_mood[:name].force_encoding('utf-8') 
+        #puts "MOOD force:", curr_mood[:name].force_encoding('iso-8859-1') 
+        #page_name = "#{curr_mood[:name]} #{curr_date}";
+        page_name = curr_date;
         page_properties = {
             "Date": {
                 "date": {
@@ -206,15 +210,17 @@ class Notion
         }
     end
 
-    def get_database(headers, database_id)
+    def get_database(headers, database_id, verbose = false)
         url_get_database = "https://api.notion.com/v1/databases/#{database_id}"
         get_database_response = RestClient.get(url_get_database, headers)
-        puts "GET DATABASE"
-        puts "----"
-        puts get_database_response.body
+        if verbose
+            puts "GET DATABASE"
+            puts "----"
+            puts get_database_response.body
+        end
     end
 
-    def query_database(headers, database_id, filter)
+    def query_database(headers, database_id, filter, verbose = false)
         url_query_database = "https://api.notion.com/v1/databases/#{database_id}/query"
         query_database_payload = { "filter": filter }
         query_response = RestClient.post(
@@ -222,24 +228,30 @@ class Notion
             query_database_payload, 
             headers
         )
-        puts "QUERY DATABASE"
-        puts "----"
-        puts query_response.body
+        if verbose
+            puts "QUERY DATABASE"
+            puts "----"
+            puts query_response.body
+        end
     end
 
-    def post_page(headers, new_page)
+    def post_page(headers, new_page, verbose = false)
         url_create_page = "https://api.notion.com/v1/pages/"
         create_page_payload = new_page;
-        puts "CREATE PAGE"
-        puts "----"
+        if verbose
+            puts "CREATE PAGE"
+            puts "----"
+        end
         begin
             create_response = RestClient.post(
                 url_create_page, 
                 create_page_payload.to_json, 
                 headers
             )
-            puts create_response.code
-            puts create_response.body
+            if verbose
+                puts create_response.code
+                puts create_response.body
+            end
         rescue RestClient::ExceptionWithResponse => e
             puts "BAD REQUEST: ", e.response
         end
@@ -281,16 +293,16 @@ class Notion
           curr_date = pixel["date"]
           for entry in pixel["entries"] do 
             notion_page = build_page(database_id, curr_date, entry)
-            # testing 
+            #post_page(headers, notion_page)
+            # TESTING 
             @@test_page = notion_page
-            puts "notion page: ", notion_page
-            puts "notion page: ", notion_page.to_json
-            # post_page(headers, notion_page)
+            #puts "notion page: ", notion_page
+            #puts "notion page: ", notion_page.to_json
           end 
         end
         #puts "unique emotions: ", @@emotions.sort
 
-        #get_database(headers, database_id)
+        #get_database(headers, database_id, true)
 
         #filter = {
             #"property": "Name",
@@ -298,9 +310,9 @@ class Notion
                 #"equals": "TEST 0"
             #}
         #}
-        #query_database(headers, database_id, filter)
+        #query_database(headers, database_id, filter, true)
 
-        #post_page(headers, @@test_page)
+        post_page(headers, @@test_page, true)
     end
 end
 
