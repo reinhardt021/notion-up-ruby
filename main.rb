@@ -142,7 +142,11 @@ class Notion
         #puts "entry:", entry
         entry_date = DateTime.iso8601(curr_date)
         curr_mood = MOOD_MAPPINGS[entry["value"].to_s.to_sym]
-        puts "curr_mood", curr_mood[:name].encode('utf-8') #tried encode('utf-8') tried to_s, to_json
+        puts "MOOD:", curr_mood[:name].to_s #tried encode('utf-8') tried to_s, to_json
+        puts "MOOD:", curr_mood[:name].to_json #tried encode('utf-8') tried to_s, to_json
+        puts "MOOD:", curr_mood[:name].encode('utf-8') #tried encode('utf-8') tried to_s, to_json
+        puts "MOOD:", curr_mood[:name].force_encoding('utf-8') #tried encode('utf-8') tried to_s, to_json
+        page_name = "#{curr_mood[:name]} #{curr_date}";
         page_properties = {
             "Date": {
                 "date": {
@@ -153,7 +157,7 @@ class Notion
             "Name": {
                 "title": [
                     "text": {
-                        "content": curr_date
+                        "content": page_name
                     }
                 ]
             },
@@ -277,9 +281,11 @@ class Notion
           curr_date = pixel["date"]
           for entry in pixel["entries"] do 
             notion_page = build_page(database_id, curr_date, entry)
+            # testing 
             @@test_page = notion_page
+            puts "notion page: ", notion_page
             puts "notion page: ", notion_page.to_json
-            # TODO: do API call to POST new page to NOTION
+            # post_page(headers, notion_page)
           end 
         end
         #puts "unique emotions: ", @@emotions.sort
@@ -294,7 +300,7 @@ class Notion
         #}
         #query_database(headers, database_id, filter)
 
-        #create_page(headers, @@test_page)
+        #post_page(headers, @@test_page)
     end
 end
 
