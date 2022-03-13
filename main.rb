@@ -7,27 +7,27 @@ MOOD_MAPPINGS = {
   "1": {
     "id": "30e63781-10c4-45bb-bc25-4446468089f2",
     "name": '\ud83d\ude22',
-    "color": "default"
+    "color": "gray"
   },
   "2": {
     "id": "67a2a6af-ab60-4f5f-b2f2-458174d7a488",
     "name": '\ud83d\ude41',
-    "color": "default"
+    "color": "blue"
   },
   "3": {
     "id": "cf4df1d3-7df8-49de-a296-c217f63677f2",
     "name": '\ud83d\ude10',
-    "color": "default"
+    "color": "purple"
   },
   "4": {
     "id": "d6ca8b86-ada7-45bf-ae46-c84dc50a7660",
     "name": '\ud83d\ude42',
-    "color": "default"
+    "color": "red"
   },
   "5": {
     "id": "6c17921e-6838-4d01-911b-c74a844e7163",
     "name": '\ud83d\ude04',
-    "color": "default"
+    "color": "yellow"
   },
 }
 
@@ -114,13 +114,15 @@ class Notion
     @@emotions = [];
     @@test_page = {};
     
-    def load_json(file_path)
+    def load_json(file_path, verbose = false)
         if !file_path 
           puts "no file path given"
           return nil
         end
 
-        puts "We can find the file here: ", file_path
+        if verbose
+            puts "We can find the file here: ", file_path
+        end
         file = File.open(file_path)
 
         if !file
